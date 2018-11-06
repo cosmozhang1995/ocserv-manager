@@ -1,7 +1,7 @@
 import os
 import datetime
 
-maxfilesize = 1#1024*1024*16
+maxfilesize = 1024*1024*16
 timefmt = "%Y-%m-%dT%H:%M:%S"
 
 currdir = os.path.realpath(os.path.dirname(__file__))
@@ -89,9 +89,9 @@ class SearchResult(list):
 
 def search_log(hashstr=None, title=None, time=None, start=None, end=None, judgement=None, limit=None, desc=True, **kwargs):
   if not limit is None and limit <= 0: return SearchResult([])
-  if isinstance(time, str): time = datetime.datetime.strftime(time,timefmt)
-  if isinstance(start, str): start = datetime.datetime.strftime(start,timefmt)
-  if isinstance(end, str): end = datetime.datetime.strftime(end,timefmt)
+  if isinstance(time, str): time = datetime.datetime.strptime(time,timefmt)
+  if isinstance(start, str): start = datetime.datetime.strptime(start,timefmt)
+  if isinstance(end, str): end = datetime.datetime.strptime(end,timefmt)
   logfiles = _get_logfiles()
   logfiles = [os.path.join(logdir, filename) for filename in logfiles]
   nlogfiles = len(logfiles)
@@ -118,8 +118,10 @@ def search_log(hashstr=None, title=None, time=None, start=None, end=None, judgem
   if endidx is None: endidx = nlogfiles
   # do the search
   retitems = []
-  for i in range(startidx, endidx):
-    filepath = logfiles[(nlogfiles - i - 1) if desc else i]
+  for i in range(nlogfiles):
+    fileidx = (nlogfiles - i - 1) if desc else i;
+    if fileidx < startidx or fileidx >= endidx: continue
+    filepath = logfiles[fileidx]
     f = open(filepath)
     lines = f.read().split("\n")
     f.close()

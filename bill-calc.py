@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import sys, os
-from logutil import search_log
+from logutil import search_log, add_log, timefmt
 from utils import format_bytes, format_seconds
+from configs import price_per_gb
+import datetime
 
 username = sys.argv[1]
 
@@ -23,33 +25,37 @@ bytesout = 0
 duration = 0
 records = search_log(title="Disconnect", user=username, start=starttime)
 for record in records:
-  if record.hashstr.find(starthash) == 0: break
+  if starthash and record.hashstr.find(starthash) == 0: break
   bytesin += int(record.params.get("bytesin"))
   bytesout += int(record.params.get("bytesout"))
   duration += int(record.params.get("duration"))
 hasrecord = (len(records) > 0)
 
-if len(records) > 0:
-  starttime = records[-1].time.strftime("%Y-%m-%d %H:%M:%S")
+if hasrecord:
+  totalprice = float(bytesin + bytesout) / 1000 / 1000 / 1000 * price_per_gb
+  starttime = records[-1].time
   starthash = records[-1].hashstr
-  endtime = records[0].time.strftime("%Y-%m-%d %H:%M:%S")
+  endtime = records[0].time
   endhash = records[0].hashstr
   log = add_log(title="BillCalc", params=[
       ("user",username),
-      ("starttime",starttime),
+      ("starttime",starttime.strftime(timefmt)),
       ("starthash",starthash),
-      ("endtime",endtime),
+      ("endtime",endtime.strftime(timefmt)),
       ("endhash",endhash),
       ("bytesin",bytesin),
       ("bytesout",bytesout),
-      ("duration",duration)
+      ("duration",duration),
+      ("totalprice",totalprice)
     ])
 
 if hasrecord:
   print("Usage for user [%s]:" % username)
-  print("  From <%s> to <%s>" % (starttime, endtime))
+  print("  From <%s> to <%s>" % (starttime.strftime("%Y-%m-%d %H:%M:%S"), endtime.strftime("%Y-%m-%d %H:%M:%S")))
   print("    Total upload: " + format_bytes(bytesin))
   print("    Total download: " + format_bytes(bytesout))
-  print("    Total usage: "+ format_seconds(duration))
+  print("    Total usage: " + format_seconds(duration))
+  print("    Total price: " + str(totalprice))
+  print("  Hash code: " + log.hashstr)
 else:
-  print("No usage for user [%s] since <%s>" % (username, starttime.strftime("%Y-%m-%d %H:%M:%S") if starttime else "ever"))
+  print("No usage for user [%s] since <%s>" % (username, datetime.datetime.strptime(starttime,timefmt).strftime("%Y-%m-%d %H:%M:%S") if starttime else "ever"))

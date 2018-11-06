@@ -1,0 +1,12 @@
+#!/bin/bash
+
+currdir=$(dirname "${BASH_SOURCE[0]}")
+python $currdir/script.py
+
+#currdate=$(date)
+#echostr="$currdate [$REASON] user=$USERNAME ip=$IP_READ"
+#if [ "$REASON" == "disconnect" ]; then
+#  echostr="$echostr bytesin=$STATS_BYTES_IN bytesout=$STATS_BYTES_OUT duration=$STATS_DURATION"
+#fi
+#echo $echostr >> $currdir/scription.log
+

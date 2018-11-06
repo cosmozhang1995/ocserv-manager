@@ -1,8 +1,6 @@
 import os
 import datetime
-
-currdir = os.path.realpath(os.path.dirname(__file__))
-logpath = os.path.join(currdir, "scription.log")
+from logutil import add_log
 
 reason = os.environ["REASON"]
 is_disconn = (reason == "disconnect")
@@ -13,13 +11,16 @@ if is_disconn:
   bytesin = int(os.environ["STATS_BYTES_IN"])
   bytesout = int(os.environ["STATS_BYTES_OUT"])
   duration = int(os.environ["STATS_DURATION"])
-now = datetime.datetime.now()
 
-echostr = "%s [Connect] user=%s ip=%s" % (now.strftime("%Y-%m-%dT%H:%M:%S"), username, ip_real)
+if is_disconn: title = "Disconnect"
+if is_connect: title = "Connect"
+
+params = [];
+params.append(("user", username))
+params.append(("ip", ip_real))
 if is_disconn:
-  echostr += " bytesin=%d bytesout=%d duration=%d" % (bytesin, bytesout, duration)
-echostr += "\n"
+  params.append(("bytesin", bytesin))
+  params.append(("bytesout", bytesout))
+  params.append(("duration", duration))
 
-f = open(logpath, "a")
-f.write(echostr)
-f.close()
+add_log(title=title, params=params)
